@@ -30,6 +30,7 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.text.style.BulletSpan;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -71,7 +72,9 @@ public class DeviceControlActivity extends Activity {
 
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
-    private RealtimeScrolling RSFigure1;
+    private RealtimeScrolling HFigure;
+    private RealtimeScrolling RFigure;
+    private RealtimeScrolling MFigure;
 
     // Code to manage Service lifecycle.
     private final ServiceConnection mServiceConnection = new ServiceConnection() {
@@ -117,7 +120,21 @@ public class DeviceControlActivity extends Activity {
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 //displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
-                RSFigure1.drawPoint(intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA, 0));
+                //RSFigure1.drawPoint(intent.getDoubleExtra(BluetoothLeService.EXTRA_DATA, 0));
+                byte[] de;
+                de = intent.getByteArrayExtra(BluetoothLeService.EXTRA_DATA);
+                if (de.length >= 1)
+                {
+                    HFigure.drawPoint((int)de[0]&0xff);
+                }
+                if (de.length >= 2)
+                {
+                    RFigure.drawPoint((int)de[1]&0xff);
+                }
+                if (de.length >= 3)
+                {
+                    MFigure.drawPoint((int)de[2]&0xff);
+                }
 
             }
         }
@@ -187,8 +204,31 @@ public class DeviceControlActivity extends Activity {
 
         FragmentManager fragmentManager = getFragmentManager();
         FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
-        RSFigure1 = new RealtimeScrolling();
-        fragmentTransaction.add(R.id.figure1, RSFigure1, "Figure1");
+
+        HFigure = new RealtimeScrolling();
+        Bundle args1 = new Bundle();
+        double[] axis = {0, 80, 0, 160};
+        args1.putDoubleArray("AXIS_RANGE", axis);
+        args1.putString("FIGURE_NAME", "Heart Beats");
+        HFigure.setArguments(args1);
+        fragmentTransaction.add(R.id.hfigure, HFigure, "HFigure");
+
+        RFigure = new RealtimeScrolling();
+        Bundle args2 = new Bundle();
+        double[] axis2 = {0, 200, 0, 200};
+        args2.putDoubleArray("AXIS_RANGE", axis2);
+        args2.putString("FIGURE_NAME", "Respiration");
+        RFigure.setArguments(args2);
+        fragmentTransaction.add(R.id.rfigure, RFigure, "RFigure");
+
+        MFigure = new RealtimeScrolling();
+        Bundle args3 = new Bundle();
+        double[] axis3 = {0, 200, 0, 10};
+        args3.putDoubleArray("AXIS_RANGE", axis3);
+        args3.putString("FIGURE_NAME", "Movement");
+        MFigure.setArguments(args3);
+        fragmentTransaction.add(R.id.mfigure, MFigure, "MFigure");
+
         fragmentTransaction.commit();
 
     }
